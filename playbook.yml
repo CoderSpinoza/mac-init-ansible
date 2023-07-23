@@ -1,0 +1,27 @@
+- hosts: localhost
+  tasks:
+    - name: Install libraries with homebrew
+      homebrew: name={{ item }} state=present
+      with_items:
+        - tmux
+    - name: Install applications with hombrew cask
+      homebrew_cask: name={{ item }} state=present
+      with_items:
+        - iterm2
+        - visual-studio-code
+        - google-chrome
+        - slack
+        - notion
+        - todoist
+        - docker
+        - bitwarden
+        - spotify
+    - name: Apply git configuration
+      git_config:
+        name="{{ item.name }}"
+        value="{{ item.value }}"
+        scope=global
+      with_items:
+        - { name: "user.name", value: "coderspinoza"} # TODO: make this into an env var
+        - { name: "user.email", value: "hara0115@gmail.com" } # TODO: make this into an env var
+        - { name: "ui.color",   value: "True" }
