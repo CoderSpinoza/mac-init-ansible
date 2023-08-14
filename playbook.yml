@@ -1,21 +1,27 @@
 - hosts: localhost
   tasks:
     - name: Install libraries with homebrew
-      homebrew: name={{ item }} state=present
-      with_items:
-        - tmux
+      homebrew:
+        name:
+          - tmux
+          - mas # Mac App Store cli
+          - ffmpeg
+        state: present
     - name: Install applications with hombrew cask
-      homebrew_cask: name={{ item }} state=present
-      with_items:
-        - iterm2
-        - visual-studio-code
-        - google-chrome
-        - slack
-        - notion
-        - todoist
-        - docker
-        - bitwarden
-        - spotify
+      homebrew_cask:
+        name:
+          - iterm2
+          - visual-studio-code
+          - google-chrome
+          - slack
+          - notion
+          - todoist
+          - docker
+          - bitwarden
+          - spotify
+          - discord
+          - mongodb-compass
+        state: present
     - name: Apply git configuration
       git_config:
         name="{{ item.name }}"
@@ -25,3 +31,25 @@
         - { name: "user.name", value: "coderspinoza"} # TODO: make this into an env var
         - { name: "user.email", value: "hara0115@gmail.com" } # TODO: make this into an env var
         - { name: "ui.color",   value: "True" }
+    - name: Install collection community
+      community.general.ansible_galaxy_install:
+        type: collection
+        name: community.general
+    - name: Install applications on Map App Store
+      community.general.mas:
+        id="{{ item }}"
+        state=present
+      with_items: # You can search for ids using 'mas search ${APP_NAME}'
+        - 869223134 # KakaoTalk
+        - 405399194 # Kindle
+        - 1444383602 # GoodNotes
+        - 405843582 # Alfred
+        - 411643860 # DaisyDisk
+    - name: Upgrade all installed Mac App Store apps
+      community.general.mas:
+        upgrade_all: true
+    - name: "Starting docker service"
+      service:
+        name: "docker"
+        state: started
+        enabled: yes
