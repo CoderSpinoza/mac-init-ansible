@@ -21,6 +21,7 @@
           - spotify
           - discord
           - mongodb-compass
+          - fork
         state: present
     - name: Apply git configuration
       git_config:
