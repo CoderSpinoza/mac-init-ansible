@@ -1,11 +1,18 @@
 - hosts: localhost
   tasks:
+    - name: Run whoami without become
+      command: whoami
+      changed_when: false
+      become: false
+      register: whoami
     - name: Install libraries with homebrew
       homebrew:
         name:
           - tmux
           - mas # Mac App Store cli
           - ffmpeg
+          - awscli
+          - nvm
         state: present
     - name: Install applications with hombrew cask
       homebrew_cask:
@@ -49,8 +56,49 @@
     - name: Upgrade all installed Mac App Store apps
       community.general.mas:
         upgrade_all: true
-    - name: "Starting docker service"
-      service:
-        name: "docker"
-        state: started
-        enabled: yes
+    # - name: "Starting docker service" # Not applicable to Mac
+    #   service:
+    #     name: "docker"
+    #     state: started
+    #     enabled: yes
+    - name: Install oh-my-zsh
+      block:
+        - name: Install oh-my-zsh for user
+          shell: sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+          args:
+            creates: "~/.oh-my-zsh"
+        - name: Copy predefined .zshrc
+          copy:
+            src: configs/.zshrc
+            dest: ~/.zshrc
+    - name: Install Iterm themes
+      block:
+        - name: Ensure directory exists
+          file:
+            path: "{{ ansible_env.HOME }}/ItermThemes"
+            state: directory
+            owner: "{{ whoami.stdout }}"
+        - name: Download Iterm2 Homebrew theme
+          get_url:
+            url: https://raw.githubusercontent.com/mbadolato/iTerm2-Color-Schemes/master/schemes/Homebrew.itermcolors
+            dest: "{{ ansible_env.HOME }}/ItermThemes"
+    - name: Set up nvm
+      block:
+        - name: Create .nvm
+          file:
+            path: "{{ ansible_env.HOME }}/.nvm"
+            state: directory
+            owner: "{{ whoami.stdout }}"
+        - name: Add environment variable to .zprofile
+          blockinfile:
+            path: ~/.zprofile
+            block: |
+              export NVM_DIR="$HOME/.nvm"
+              source $(brew --prefix nvm)/nvm.sh
+            create: yes
+            state: present
+            marker: "# {mark} ANSIBLE MANAGED NVM ENV VAR"
+        - name: Source .zprofile
+          shell: source ~/.zprofile
+          args:
+            executable: /bin/zsh
