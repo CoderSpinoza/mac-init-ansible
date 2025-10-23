@@ -17,18 +17,23 @@
     - name: Install applications with hombrew cask
       homebrew_cask:
         name:
-          - iterm2
-          - visual-studio-code
-          - google-chrome
+#          - google-chrome # pre-installed on Krafton's Mac
           - slack
           - notion
-          - todoist
-          - docker
+#          - docker # requires admin privileges
           - bitwarden
           - spotify
           - discord
-          - mongodb-compass
           - fork
+          - cursor
+          - chatgpt
+          - claude
+          - claude-code
+          - warp
+          - obsidian
+          - linear-linear
+          - raycast
+          - mitmproxy
         state: present
     - name: Apply git configuration
       git_config:
@@ -49,10 +54,6 @@
         state=present
       with_items: # You can search for ids using 'mas search ${APP_NAME}'
         - 869223134 # KakaoTalk
-        - 405399194 # Kindle
-        - 1444383602 # GoodNotes
-        - 405843582 # Alfred
-        - 411643860 # DaisyDisk
     - name: Upgrade all installed Mac App Store apps
       community.general.mas:
         upgrade_all: true
@@ -71,17 +72,6 @@
           copy:
             src: configs/.zshrc
             dest: ~/.zshrc
-    - name: Install Iterm themes
-      block:
-        - name: Ensure directory exists
-          file:
-            path: "{{ ansible_env.HOME }}/ItermThemes"
-            state: directory
-            owner: "{{ whoami.stdout }}"
-        - name: Download Iterm2 Homebrew theme
-          get_url:
-            url: https://raw.githubusercontent.com/mbadolato/iTerm2-Color-Schemes/master/schemes/Homebrew.itermcolors
-            dest: "{{ ansible_env.HOME }}/ItermThemes"
     - name: Set up nvm
       block:
         - name: Create .nvm
